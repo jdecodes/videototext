@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ $# -ne 1 ]; then
+  echo "Usage: v2t <video-file>"
+  exit 1
+fi
+
+VIDEO="$1"
+
+if [ ! -f "$VIDEO" ]; then
+  echo "Error: file not found: $VIDEO"
+  exit 1
+fi
+
+BASENAME="$(basename "$VIDEO")"
+NAME="${BASENAME%.*}"
+
+WAV="${NAME}.wav"
+TXT="${NAME}.txt"
+
+START=$SECONDS
+
+# Step 1: video -> wav (only if not already present)
+if [ ! -f "$WAV" ]; then
+  echo "Creating WAV: $WAV"
+  v2a "$VIDEO" "$WAV"
+else
+  echo "WAV already exists: $WAV (skipping extraction)"
+fi
+
+# Step 2: wav -> text
+echo "Creating transcript: $TXT"
+totext "$WAV"
+
+DURATION=$((SECONDS - START))
+
+echo "Done."
+echo "WAV: $WAV"
+echo "Text: $TXT"
+echo "Total time: ${DURATION}s"
